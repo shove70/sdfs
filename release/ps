@@ -1,0 +1,3 @@
+#!/bin/sh
+
+ps -ax | egrep 'sdfs.' | grep -v 'grep -E'

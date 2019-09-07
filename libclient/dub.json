@@ -1,0 +1,16 @@
+{
+    "authors": ["hubu.eims lab"],
+    "name": "libclient",
+    "description": "Shove sdfs system client api.",
+    "copyright": "Copyright © 2019, hubu.eims",
+    "targetType": "library",
+    "targetName": "sdfsclient",
+    "targetPath": "../release",
+    "dependencies": {
+        "appbase:utils": "~>0.1.5",
+        "buffer": "~>0.2.24"
+    },
+    "stringImportPaths": [
+        "../buffers/"
+    ]
+}

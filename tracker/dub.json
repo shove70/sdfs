@@ -1,0 +1,19 @@
+{
+    "authors": ["hubu.eims lab"],
+    "name": "tracker",
+    "description": "Shove sdfs system tracker server.",
+    "copyright": "Copyright © 2019, hubu.eims",
+    "targetType": "executable",
+    "targetName": "sdfs.tracker",
+    "targetPath": "../release",
+    "dependencies": {
+        "appbase:utils": "~>0.1.5",
+        "appbase:configuration": "~>0.1.5",
+        "appbase:listener": "~>0.1.5",
+        "buffer": "~>0.2.24",
+        "leveldb": "~>1.16.0"
+    },
+    "stringImportPaths": [
+        "../buffers/"
+    ]
+}

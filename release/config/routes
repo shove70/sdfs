@@ -1,0 +1,6 @@
+
+#
+# [GET,POST,PUT...]    path    controller.method
+#
+
+*		/1						staticDir:/Users/shove/Desktop/sdfs/filestorager

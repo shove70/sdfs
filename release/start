@@ -1,0 +1,36 @@
+#!/bin/sh
+
+if [ $# -lt 1 ]; then
+    echo "Usage: ./start.sh [all | tracker | storager | access]"
+    exit 1
+fi
+
+if [ $1 = "all" ]; then
+    pkill sdfs.
+    cd /home/sdfs
+    nohup ./sdfs.tracker &
+    nohup ./sdfs.storager &
+    nohup ./sdfs.access &
+    exit 0
+fi
+
+if [ $1 = "tracker" ]; then
+    pkill sdfs.trac
+    cd /home/sdfs
+    nohup ./sdfs.tracker &
+    exit 0
+fi
+
+if [ $1 = "storager" ]; then
+    pkill sdfs.stora
+    cd /home/sdfs
+    nohup ./sdfs.storager &
+    exit 0
+fi
+
+if [ $1 = "access" ]; then
+    pkill sdfs.acc
+    cd /home/sdfs
+    nohup ./sdfs.access &
+    exit 0
+fi

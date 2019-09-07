@@ -1,0 +1,16 @@
+/sdfs.tracker
+/sdfs.storager
+/sdfs.access
+/sdfs.client
+
+**/sdfs.tracker.exe
+**/sdfs.storager.exe
+**/sdfs.access.exe
+**/sdfs.client.exe
+
+/libsdfsclient.a
+/sdfsclient.lib
+
+/.project
+**/nohup.out
+**/log

@@ -1,0 +1,18 @@
+{
+    "authors": ["hubu.eims lab"],
+    "name": "access",
+    "description": "Shove sdfs system access server.",
+    "targetType": "executable",
+    "targetName": "sdfs.access",
+    "targetPath": "../release",
+    "mainSourceFile": "./src/bootstrap.d",
+    "dependencies": {
+        "hunt-snapshot-0_10_7": "~>0.10.7"
+    },
+    "sourcePaths": [
+        "src/"
+    ],
+    "importPaths": [
+        "src/"
+    ]
+}

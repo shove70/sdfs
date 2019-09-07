@@ -1,0 +1,109 @@
+// sdfs.buffers
+// ******** for storager -> tracker:
+
+message RegisterRequest
+{
+    uint16  group;
+    uint8   name;
+    string  host;
+    uint16  port;
+}
+message RegisterResponse
+{
+    int16   result;
+    string  description;
+
+    string  allStoragers;
+
+    /*
+    allStoragers json:
+    {
+    "data": [
+        { group: 1, name: 1, host: "127.0.0.1", port: 1203, lastOnlineTime: "", online: 1 },
+        ...
+        ]
+    }
+    */
+}
+
+message ReportFileChangedRequest
+{
+    uint16  group;
+    uint8   name;
+
+    int8    operation;      // 1: created, 2: removed.
+    string  keyHash;
+}
+message ReportFileChangedResponse
+{
+    int16   result;
+    string  description;
+}
+
+
+// ******** for client -> tracker:
+
+message PreuploadRequest
+{
+    string  keyHash;
+}
+message PreuploadResponse
+{
+    int16   result;
+    string  description;
+
+    string  url;            // group/keyHash
+    string  storager;       // url has value when file exists, else storager has value.
+
+    /*
+    storager json:
+    {
+    "data": [
+        { group: 1, name: 1, host: "127.0.0.1", port: 1203 }
+        ]
+    }
+    */
+}
+
+
+// ******** for client -> storager:
+
+message UploadRequest
+{
+    string  content;
+}
+message UploadResponse
+{
+    int16   result;
+    string  description;
+
+    string  url;            // group/keyHash
+}
+
+message RemoveReqeust
+{
+    string  keyHash;
+}
+message RemoveResponse
+{
+    int16   result;
+    string  description;
+}
+
+
+// ******** for storager -> storager (for synchronize):
+
+message SyncFileChangedRequest
+{
+    uint16  group;
+    uint8   name;
+
+    int8    operation;      // 1: created, 2: removed.
+    string  keyHash;
+    string  content;        // file content, for operation = 1.
+}
+message SyncFileChangedResponse
+{
+    int16   result;
+    string  description;
+}
