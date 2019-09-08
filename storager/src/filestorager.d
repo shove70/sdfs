@@ -10,28 +10,53 @@ import sdfs.storager.synchronizer;
 
 class FileStorager
 {
-package:
-
-    static bool exists(const string keyHash)
+    static bool exists(const string keyHash, ref string fileRealname)
     {
-        string path = buildStorageFilename(keyHash);
+        string filename = buildStorageFilename(keyHash);
 
-        return path.exists;
+        fileRealname = filename ~ "$$";
+        if (fileRealname.exists)
+        {
+            return true;
+        }
+
+        fileRealname = filename ~ "$_";
+        if (fileRealname.exists)
+        {
+            return true;
+        }
+
+        fileRealname = filename ~ "_$";
+        if (fileRealname.exists)
+        {
+            return true;
+        }
+
+        fileRealname = filename ~ "__";
+        if (fileRealname.exists)
+        {
+            return true;
+        }
+
+        fileRealname = string.init;
+        return false;
     }
 
-    static void save(const string keyHash, const scope ubyte[] content)
+    static void save(const string keyHash, const scope ubyte[] content, const bool isSyncMode)
     {
+        string fileRealname;
+        if (exists(keyHash, fileRealname))
+        {
+            return;
+        }
+
         string path = buildStoragePath(keyHash);
         if (!path.exists)
         {
             path.mkdirRecurse();
         }
 
-        path = buildPath(path, keyHash);
-        if (path.exists)
-        {
-            return;
-        }
+        path = buildPath(path, keyHash ~ (isSyncMode ? "$$" : "__"));
 
         try
         {
@@ -41,41 +66,54 @@ package:
         {
         }
 
-        SynchronizeMethod method = new SynchronizeMethod(1, keyHash);
-        Synchronizer.pushToTracker(method);
-        Synchronizer.pushToPartner(method);
+        if (!isSyncMode)
+        {
+            SynchronizeMethod method = new SynchronizeMethod(1, keyHash);
+            Synchronizer.pushToTracker(method);
+            Synchronizer.pushToPartner(method);
+        }
     }
 
     static ubyte[] read(const string keyHash)
     {
-        string path = buildStorageFilename(keyHash);
-        if (!path.exists)
+        string fileRealname;
+        if (!exists(keyHash, fileRealname))
         {
             return null;
         }
 
-        return cast(ubyte[])std.file.read(path);
+        try
+        {
+            return cast(ubyte[])std.file.read(fileRealname);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
     }
 
-    static void remove(const string keyHash)
+    static void remove(const string keyHash, const bool isSyncMode)
     {
-        string path = buildStorageFilename(keyHash);
-        if (!path.exists)
+        string fileRealname;
+        if (!exists(keyHash, fileRealname))
         {
             return;
         }
 
         try
         {
-            std.file.remove(path);
+            std.file.remove(fileRealname);
         }
         catch (Exception e)
         {
         }
 
-        SynchronizeMethod method = new SynchronizeMethod(2, keyHash);
-        Synchronizer.pushToTracker(method);
-        Synchronizer.pushToPartner(method);
+        if (!isSyncMode)
+        {
+            SynchronizeMethod method = new SynchronizeMethod(2, keyHash);
+            Synchronizer.pushToTracker(method);
+            Synchronizer.pushToPartner(method);
+        }
     }
 
     static string generateKeyHash(const scope ubyte[] content)
@@ -87,8 +125,6 @@ package:
     {
         return config.storager.group.value ~ "/" ~ keyHash;
     }
-
-private:
 
     static string buildStoragePath(const string keyHash)
     {

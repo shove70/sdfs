@@ -2,6 +2,8 @@ module sdfs.storager.synchronizer;
 
 import core.sync.rwmutex;
 import std.typecons;
+import std.exception : enforce;
+import std.file;
 
 import buffer;
 import buffer.rpc.client;
@@ -32,6 +34,8 @@ class Synchronizer
     {
         _mutexTracker = new ReadWriteMutex(ReadWriteMutex.Policy.PREFER_WRITERS);
         _mutexPartner = new ReadWriteMutex(ReadWriteMutex.Policy.PREFER_WRITERS);
+
+        _mutexFileSyncState = new ReadWriteMutex(ReadWriteMutex.Policy.PREFER_WRITERS);
     }
 
     static void pushToTracker(SynchronizeMethod method)
@@ -44,34 +48,43 @@ class Synchronizer
 
     static void synchronizeToTracker()
     {
-        if (_queueTracker.empty)
+        while (!_queueTracker.empty)
         {
-            return;
-        }
+            byte operation;
+            string keyHash;
 
-        synchronized (_mutexTracker.writer)
-        {
-            while (!_queueTracker.empty)
+            synchronized (_mutexTracker.writer)
             {
+                if (_queueTracker.empty)
+                {
+                    return;
+                }
+
                 SynchronizeMethod method = _queueTracker.front;
-
-                ReportFileChangedResponse res;
-                try
-                {
-                    res = Client.callEx!ReportFileChangedResponse(
-                        trackerSocket,
-                        config.sys.protocol.magic.as!ushort, CryptType.NONE, string.init, Nullable!RSAKeyInfo(),
-                        "reportFileChanged",
-                        config.storager.group.as!ushort,
-                        config.storager.name.as!ubyte,
-                        method.operation,
-                        method.keyHash);
-                }
-                catch (Exception e)
-                {
-                }
-
+                operation = method.operation;
+                keyHash = method.keyHash;
                 _queueTracker.pop;
+            }
+
+            ReportFileChangedResponse res;
+            try
+            {
+                res = Client.callEx!ReportFileChangedResponse(
+                    trackerSocket,
+                    config.sys.protocol.magic.as!ushort, CryptType.NONE, string.init, Nullable!RSAKeyInfo(),
+                    "reportFileChanged",
+                    config.storager.group.as!ushort,
+                    config.storager.name.as!ubyte,
+                    operation,
+                    keyHash);
+            }
+            catch (Exception e)
+            {
+            }
+
+            if (operation == 1)
+            {
+                setFileSynchronizedState(keyHash, 1);
             }
         }
     }
@@ -86,35 +99,44 @@ class Synchronizer
 
     static void synchronizeToPartner()
     {
-        if (_queuePartner.empty)
+        while (!_queuePartner.empty)
         {
-            return;
-        }
+            byte operation;
+            string keyHash;
 
-        synchronized (_mutexPartner.writer)
-        {
-            while (!_queuePartner.empty)
+            synchronized (_mutexPartner.writer)
             {
+                if (_queuePartner.empty)
+                {
+                    return;
+                }
+
                 SynchronizeMethod method = _queuePartner.front;
-
-                SyncFileChangedResponse res;
-                try
-                {
-                    res = Client.callEx!SyncFileChangedResponse(
-                        partnerSocket,
-                        config.sys.protocol.magic.as!ushort, CryptType.NONE, string.init, Nullable!RSAKeyInfo(),
-                        "syncFileChanged",
-                        config.storager.group.as!ushort,
-                        config.storager.name.as!ubyte,
-                        method.operation,
-                        method.keyHash,
-                        method.operation == 1 ? compressString(FileStorager.read(method.keyHash)) : string.init);
-                }
-                catch (Exception e)
-                {
-                }
-
+                operation = method.operation;
+                keyHash = method.keyHash;
                 _queuePartner.pop;
+            }
+
+            SyncFileChangedResponse res;
+            try
+            {
+                res = Client.callEx!SyncFileChangedResponse(
+                    partnerSocket,
+                    config.sys.protocol.magic.as!ushort, CryptType.NONE, string.init, Nullable!RSAKeyInfo(),
+                    "syncFileChanged",
+                    config.storager.group.as!ushort,
+                    config.storager.name.as!ubyte,
+                    operation,
+                    keyHash,
+                    operation == 1 ? compressString(FileStorager.read(keyHash)) : string.init);
+            }
+            catch (Exception e)
+            {
+            }
+
+            if (operation == 1)
+            {
+                setFileSynchronizedState(keyHash, 2);
             }
         }
     }
@@ -126,4 +148,76 @@ private:
 
     __gshared Queue!SynchronizeMethod _queueTracker;
     __gshared Queue!SynchronizeMethod _queuePartner;
+
+    __gshared ReadWriteMutex _mutexFileSyncState;
+    __gshared byte[string] _lockedFiles;
+
+    static void setFileSynchronizedState(const string keyHash, const byte syncTarget)
+    {
+        enforce(syncTarget == 1 || syncTarget == 2);
+
+        string fileRealname;
+        if (!FileStorager.exists(keyHash, fileRealname))
+        {
+            return;
+        }
+
+        string lastTwo = fileRealname[$ - 2 .. $];
+
+        if (lastTwo[syncTarget - 1] == '$')
+        {
+            return;
+        }
+
+        lockFile(keyHash);
+
+        char[] newname = cast(char[]) fileRealname.dup;
+        newname[$ - (3 - syncTarget)] = '$';
+
+        try
+        {
+            rename(fileRealname, cast(string) newname);
+        }
+        catch (Exception e)
+        {
+        }
+
+        unlockFile(keyHash);
+    }
+
+    static void lockFile(const string keyHash)
+    {
+        while (true)
+        {
+            if (keyHash in _lockedFiles)
+            {
+                continue;
+            }
+
+            synchronized (_mutexFileSyncState.writer)
+            {
+                if (keyHash in _lockedFiles)
+                {
+                    continue;
+                }
+
+                _lockedFiles[keyHash] = 1;
+                return;
+            }
+        }
+    }
+
+    static void unlockFile(const string keyHash)
+    {
+        if (keyHash in _lockedFiles)
+        {
+            synchronized (_mutexFileSyncState.writer)
+            {
+                if (keyHash in _lockedFiles)
+                {
+                    _lockedFiles.remove(keyHash);
+                }
+            }
+        }
+    }
 }

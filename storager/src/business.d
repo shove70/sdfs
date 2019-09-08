@@ -31,7 +31,7 @@ package class Business
         ubyte[] buf = uncompressUbytes(content);
 
         string keyHash = FileStorager.generateKeyHash(buf);
-        FileStorager.save(keyHash, buf);
+        FileStorager.save(keyHash, buf, false);
 
         res.result = 0;
         res.url = FileStorager.buildUrl(keyHash);
@@ -50,8 +50,8 @@ package class Business
             return res;
         }
 
-        immutable exists = FileStorager.exists(keyHash);
-        if (!exists)
+        string fileRealname;
+        if (!FileStorager.exists(keyHash, fileRealname))
         {
             res.result = -1;
             res.description = "File is not exists in the specified storager.";
@@ -59,7 +59,7 @@ package class Business
             return res;
         }
 
-        FileStorager.remove(keyHash);
+        FileStorager.remove(keyHash, false);
 
         res.result = 0;
         return res;
@@ -110,11 +110,11 @@ package class Business
         if (operation == 1)
         {
             ubyte[] buf = uncompressUbytes(content);
-            FileStorager.save(keyHash, buf);
+            FileStorager.save(keyHash, buf, true);
         }
         else if (operation == 2)
         {
-            FileStorager.remove(keyHash);
+            FileStorager.remove(keyHash, true);
         }
 
         res.result = 0;
