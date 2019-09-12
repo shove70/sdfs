@@ -91,10 +91,15 @@ class Synchronizer
 
     static void pushToPartner(SynchronizeMethod method)
     {
-        // synchronized (_mutexPartner.writer)
-        // {
-        //     _queuePartner.push(method);
-        // }
+        if (partnerHost == string.init)
+        {
+            return;
+        }
+
+        synchronized (_mutexPartner.writer)
+        {
+            _queuePartner.push(method);
+        }
     }
 
     static void synchronizeToPartner()
