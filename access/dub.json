@@ -8,6 +8,6 @@
     "dependencies": {
         "appbase:utils": "~>0.1.3",
         "appbase:configuration": "~>0.1.3",
-        "lighttp": "~>0.5.1"
+        "lighttp": "~>0.5.2"
     }
 }
