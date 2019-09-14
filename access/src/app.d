@@ -2,18 +2,19 @@ module sdfs.access.app;
 
 import core.time;
 import std.path : buildPath, stripExtension, baseName;
+import std.range;
 import std.file : exists, read, DirEntry;
 import std.string : endsWith, startsWith, chompPrefix, rightJustify, capitalize;
-static import std.stdio;
-import std.stdio : writefln;
+import std.stdio;
 import std.datetime;
-import std.digest.md;
+import std.digest.md : hexDigest, MD5;
 import std.conv : to;
 import std.array : split, Appender;
-import std.format;
+import std.format : format;
 import std.algorithm.searching : canFind;
 
 import lighttp;
+import appbase.utils;
 
 import sdfs.access.configuration;
 
@@ -112,7 +113,7 @@ class StaticRouter
         }
 
         immutable lastModified = toRFC822DateTimeString(fi.timeModified.toUTC());
-        immutable etag = "\"" ~ hexDigest!MD5(filename ~ ":" ~ lastModified ~ ":" ~ to!string(fi.size)).idup ~ "\"";
+        immutable etag = "\"" ~ hexDigest!(std.digest.md.MD5)(filename ~ ":" ~ lastModified ~ ":" ~ to!string(fi.size)).idup ~ "\"";
         res.headers["Last-Modified"] = lastModified;
         res.headers["Etag"] = etag;
 
@@ -214,10 +215,19 @@ class StaticRouter
         res.headers["Access-Control-Allow-Headers"] = "Content-Type,api_key,Authorization,X-Requested-With,Accept,Origin,Last-Modified";
         res.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS";
 
-        auto f = std.stdio.File(filename, "r");
-        scope(exit) f.close();
-        f.seek(rangeStart);
-        res.body_ = f.rawRead(new void[rangeEnd.to!uint - rangeStart.to!uint + 1]);
+        try
+        {
+            auto f = File(filename, "r");
+            scope(exit) f.close();
+            f.seek(rangeStart);
+            res.body_ = f.rawRead(new void[rangeEnd.to!uint - rangeStart.to!uint + 1]);
+        }
+        catch (Exception e)
+        {
+            logger.write("access internalServerError: " ~ e.msg);
+            res.status = StatusCodes.internalServerError;
+            return;
+        }
     }
 
     FileInfo makeFileInfo(const string filename)
