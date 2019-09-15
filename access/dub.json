@@ -6,8 +6,8 @@
     "targetName": "sdfs.access",
     "targetPath": "../release",
     "dependencies": {
-        "appbase:utils": "~>0.1.3",
-        "appbase:configuration": "~>0.1.3",
+        "appbase:utils": "~>0.1.6",
+        "appbase:configuration": "~>0.1.6",
         "lighttp": "~>0.5.2"
     }
 }

@@ -7,9 +7,9 @@
     "targetName": "sdfs.client",
     "targetPath": "../release",
     "dependencies": {
-        "appbase:utils": "~>0.1.3",
-        "appbase:configuration": "~>0.1.3",
-        "buffer": "~>0.2.22"
+        "appbase:utils": "~>0.1.6",
+        "appbase:configuration": "~>0.1.6",
+        "buffer": "~>0.2.25"
     },
     "lflags-posix": [
         "-L../release"
