@@ -47,7 +47,18 @@ void main()
 
     Message.settings(config.sys.protocol.magic.as!ushort);
 
-    immutable result = register(errorInfo);
+    short result;
+    int times;
+    do
+    {
+        result = register(errorInfo);
+        if (result < 0)
+        {
+            Thread.sleep(500.msecs);
+        }
+    }
+    while ((times++ < 3) && (result < 0));
+
     if (result < 0)
     {
         writeln("Register to tracker fail: " ~ errorInfo);
