@@ -5,7 +5,7 @@ import std.path : buildPath, stripExtension, baseName;
 import std.range;
 import std.file : exists, read, DirEntry;
 import std.string : endsWith, startsWith, chompPrefix, rightJustify, capitalize;
-import std.stdio;
+import std.stdio : writeln, writefln, File;
 import std.datetime;
 import std.digest.md : hexDigest, MD5;
 import std.conv : to;
@@ -26,15 +26,14 @@ void main()
     server.host("0.0.0.0", config.server.port.as!ushort);
     server.host("::", config.server.port.as!ushort);
     server.router.add(new StaticRouter(config.storager.data.path.value));
-    server.run();
-
     writefln("sdfs.access start listening to 0.0.0.0:%d...", config.server.port.as!ushort);
+    server.run();
 }
 
 class StaticRouter
 {
     private immutable string path;
-    
+
     this(const string path)
     {
         if (!path.endsWith("/"))
@@ -215,18 +214,22 @@ class StaticRouter
         res.headers["Access-Control-Allow-Headers"] = "Content-Type,api_key,Authorization,X-Requested-With,Accept,Origin,Last-Modified";
         res.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS";
 
+        File f;
         try
         {
-            auto f = File(filename, "r");
-            scope(exit) f.close();
+            f = File(filename, "r");
             f.seek(rangeStart);
             res.body_ = f.rawRead(new void[rangeEnd.to!uint - rangeStart.to!uint + 1]);
         }
         catch (Exception e)
         {
+            writeln("access internalServerError: " ~ e.msg);
             logger.write("access internalServerError: " ~ e.msg);
             res.status = StatusCodes.internalServerError;
-            return;
+        }
+        finally
+        {
+            f.close();
         }
     }
 
