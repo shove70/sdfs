@@ -5,22 +5,31 @@ import std.path : buildPath, stripExtension, baseName;
 import std.range;
 import std.file : exists, read, DirEntry;
 import std.string : endsWith, startsWith, chompPrefix, rightJustify, capitalize;
-import std.stdio : writeln, writefln, File;
+import std.stdio : writeln, writefln;
 import std.datetime;
 import std.digest.md : hexDigest, MD5;
 import std.conv : to;
 import std.array : split, Appender;
 import std.format : format;
 import std.algorithm.searching : canFind;
+import std.typecons : Nullable;
 
 import lighttp;
+import cachetools;
 import appbase.utils;
 
 import sdfs.access.configuration;
 
+__gshared auto g_cache = new Cache2Q!(string, FileInfo);
+
 void main()
 {
 	Config.initConfiguration();
+
+    if (config.business.cache.size.as!uint > 0)
+    {
+        g_cache.size = config.business.cache.size.as!uint;
+    }
 
     auto server = new Server();
     server.host("0.0.0.0", config.server.port.as!ushort);
@@ -51,68 +60,85 @@ class StaticRouter
             return;
         }
 
-        string name = stripExtension(chompPrefix(filename, config.storager.data.route.value));
-
-        if (name.length < 40)
+        const string key = stripExtension(chompPrefix(filename, config.storager.data.route.value));
+        if (key.length < 40)
         {
             res.status = StatusCodes.notFound;
             return;
         }
 
-        name = buildPath(path, name[0..3], name[3..6], name[6..9], name);
+        const string name = buildPath(path, key[0..3], key[3..6], key[6..9], key);
 
-        string name2 = name ~ "$$";
-        if (name2.exists)
+        string realname = name ~ "$$";
+        if (realname.exists)
         {
-            setResponse(req, res, name2);
+            setResponse(req, res, realname, key);
             return;
         }
 
-        name2 = name ~ "$_";
-        if (name2.exists)
+        realname = name ~ "$_";
+        if (realname.exists)
         {
-            setResponse(req, res, name2);
+            setResponse(req, res, realname, key);
             return;
         }
 
-        name2 = name ~ "_$";
-        if (name2.exists)
+        realname = name ~ "_$";
+        if (realname.exists)
         {
-            setResponse(req, res, name2);
+            setResponse(req, res, realname, key);
             return;
         }
 
-        name2 = name ~ "__";
-        if (name2.exists)
+        realname = name ~ "__";
+        if (realname.exists)
         {
-            setResponse(req, res, name2);
+            setResponse(req, res, realname, key);
             return;
         }
 
         res.status = StatusCodes.notFound;
     }
 
-    void setResponse(ServerRequest req, ServerResponse res, const string filename)
+    void setResponse(ServerRequest req, ServerResponse res, const string filename, const string key)
     {
-        FileInfo fi;
-        try
+        auto fi = g_cache.get(key);
+
+        if (fi.isNull)
         {
-            fi = makeFileInfo(filename);
-        }
-        catch (Exception e)
-        {
-            res.status = StatusCodes.internalServerError;
-            return;
+            try
+            {
+                fi = makeFileInfo(filename);
+            }
+            catch (Exception e)
+            {
+                res.status = StatusCodes.internalServerError;
+                return;
+            }
+
+            if (fi.isNull)
+            {
+                res.status = StatusCodes.notFound;
+                return;
+            }
+
+            try
+            {
+                fi.get.data = cast(char[]) read(filename);
+            }
+            catch (Exception e)
+            {
+                writeln("access internalServerError: " ~ e.msg);
+                logger.write("access internalServerError: " ~ e.msg);
+                res.status = StatusCodes.internalServerError;
+                return;
+            }
+
+            g_cache.put(key, fi.get);
         }
 
-        if (fi.isDirectory)
-        {
-            res.status = StatusCodes.notFound;
-            return;
-        }
-
-        immutable lastModified = toRFC822DateTimeString(fi.timeModified.toUTC());
-        immutable etag = "\"" ~ hexDigest!(std.digest.md.MD5)(filename ~ ":" ~ lastModified ~ ":" ~ to!string(fi.size)).idup ~ "\"";
+        immutable lastModified = toRFC822DateTimeString(fi.get.timeModified.toUTC());
+        immutable etag = "\"" ~ hexDigest!(std.digest.md.MD5)(filename ~ ":" ~ lastModified ~ ":" ~ to!string(fi.get.data.length)).idup ~ "\"";
         res.headers["Last-Modified"] = lastModified;
         res.headers["Etag"] = etag;
 
@@ -155,11 +181,11 @@ class StaticRouter
                 if (s[0].length)
                 {
                     rangeStart = s[0].to!ulong;
-                    rangeEnd = s[1].length ? s[1].to!ulong : fi.size;
+                    rangeEnd = s[1].length ? s[1].to!ulong : fi.get.data.length;
                 }
                 else if (s[1].length)
                 {
-                    rangeEnd = fi.size;
+                    rangeEnd = fi.get.data.length;
                     auto len = s[1].to!ulong;
 
                     if (len >= rangeEnd)
@@ -183,9 +209,9 @@ class StaticRouter
                 return;
             }
 
-            if (rangeEnd > fi.size)
+            if (rangeEnd > fi.get.data.length)
             {
-                rangeEnd = fi.size;
+                rangeEnd = fi.get.data.length;
             }
 
             if (rangeStart > rangeEnd)
@@ -200,13 +226,13 @@ class StaticRouter
             // potential integer overflow with rangeEnd - rangeStart == size_t.max is intended. This only happens with empty files, the + 1 will then put it back to 0
 
             res.headers["Content-Length"] = to!string(rangeEnd - rangeStart + 1);
-            res.headers["Content-Range"] = "bytes %s-%s/%s".format(rangeStart < rangeEnd ? rangeStart : rangeEnd, rangeEnd, fi.size);
+            res.headers["Content-Range"] = "bytes %s-%s/%s".format(rangeStart < rangeEnd ? rangeStart : rangeEnd, rangeEnd, fi.get.data.length);
             res.status = StatusCodes.partialContent;
         }
         else
         {
-            rangeEnd = fi.size - 1;
-            res.headers["Content-Length"] = fi.size.to!string;
+            rangeEnd = fi.get.data.length - 1;
+            res.headers["Content-Length"] = fi.get.data.length.to!string;
         }
 
         res.headers["Content-Type"] = "text/plain;charset=utf-8";
@@ -214,31 +240,18 @@ class StaticRouter
         res.headers["Access-Control-Allow-Headers"] = "Content-Type,api_key,Authorization,X-Requested-With,Accept,Origin,Last-Modified";
         res.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS";
 
-        File f;
-        try
-        {
-            f = File(filename, "r");
-            f.seek(rangeStart);
-            res.body_ = f.rawRead(new void[rangeEnd.to!uint - rangeStart.to!uint + 1]);
-        }
-        catch (Exception e)
-        {
-            writeln("access internalServerError: " ~ e.msg);
-            logger.write("access internalServerError: " ~ e.msg);
-            res.status = StatusCodes.internalServerError;
-        }
-        finally
-        {
-            f.close();
-        }
+        res.body_ = fi.get.data[rangeStart .. rangeEnd + 1];
     }
 
-    FileInfo makeFileInfo(const string filename)
+    Nullable!FileInfo makeFileInfo(const string filename)
     {
-        FileInfo fi;
-        fi.name = baseName(filename);
         auto entry = DirEntry(filename);
-        fi.size = entry.size;
+        if (entry.isDir || entry.isSymlink)
+        {
+            return Nullable!FileInfo();
+        }
+
+        FileInfo fi;
         fi.timeModified = entry.timeLastModified;
         version(Windows)
         {
@@ -248,10 +261,8 @@ class StaticRouter
         {
             fi.timeCreated = entry.timeLastModified;
         }
-        fi.isSymlink = entry.isSymlink;
-        fi.isDirectory = entry.isDir;
 
-        return fi;
+        return Nullable!FileInfo(fi);
     }
 
     /// convert time to RFC822 format string
@@ -299,10 +310,7 @@ class StaticRouter
 
 struct FileInfo
 {
-    string name;
-    ulong size;
     SysTime timeModified;
     SysTime timeCreated;
-    bool isSymlink;
-    bool isDirectory;
+    char[] data;
 }
