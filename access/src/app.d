@@ -34,66 +34,49 @@ void main()
     auto server = new Server();
     server.host("0.0.0.0", config.server.port.as!ushort);
     server.host("::", config.server.port.as!ushort);
-    server.router.add(new StaticRouter(config.storager.data.path.value));
+    server.router.add(new StaticRouter());
     writefln("sdfs.access start listening to 0.0.0.0:%d...", config.server.port.as!ushort);
     server.run();
 }
 
 class StaticRouter
 {
-    private immutable string path;
-
-    this(const string path)
+    @Get(`(\d+)`, `([A-F0-9]{40})([\.].+)*`)
+	get(ServerRequest req, ServerResponse res, string path, string filename, string ext)
     {
-        if (!path.endsWith("/"))
-            this.path = (path ~ "/");
-        else
-            this.path = path;
-    }
-
-    @Get(`(.*)`)
-	get(ServerRequest req, ServerResponse res, string filename)
-    {
-        if (!filename.startsWith(config.storager.data.route.value))
+        if (path != config.storager.data.route.value)
         {
             res.status = StatusCodes.notFound;
             return;
         }
 
-        const string key = stripExtension(chompPrefix(filename, config.storager.data.route.value));
-        if (key.length < 40)
-        {
-            res.status = StatusCodes.notFound;
-            return;
-        }
-
-        const string name = buildPath(path, key[0..3], key[3..6], key[6..9], key);
+        const string name = buildPath(config.storager.data.path.value, filename[0..3], filename[3..6], filename[6..9], filename);
 
         string realname = name ~ "$$";
         if (realname.exists)
         {
-            setResponse(req, res, realname, key);
+            setResponse(req, res, realname, filename);
             return;
         }
 
         realname = name ~ "$_";
         if (realname.exists)
         {
-            setResponse(req, res, realname, key);
+            setResponse(req, res, realname, filename);
             return;
         }
 
         realname = name ~ "_$";
         if (realname.exists)
         {
-            setResponse(req, res, realname, key);
+            setResponse(req, res, realname, filename);
             return;
         }
 
         realname = name ~ "__";
         if (realname.exists)
         {
-            setResponse(req, res, realname, key);
+            setResponse(req, res, realname, filename);
             return;
         }
 
