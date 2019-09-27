@@ -41,7 +41,7 @@ void main()
 
 class StaticRouter
 {
-    @Get(`(\d+)`, `([A-F0-9]{40})([\.].+)*`)
+    @Get(`^(\d+)[\/]([A-F0-9]{40})([\.].+)*`)
 	get(ServerRequest req, ServerResponse res, string path, string filename, string ext)
     {
         if (path != config.storager.data.route.value)
