@@ -11,6 +11,5 @@
 /libsdfsclient.a
 /sdfsclient.lib
 
-/.project
 **/nohup.out
 **/log
