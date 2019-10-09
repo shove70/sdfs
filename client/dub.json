@@ -1,8 +1,9 @@
 {
-    "authors": ["hubu.eims lab"],
+    "authors": ["Shove"],
     "name": "client",
-    "description": "Shove sdfs system client.",
-    "copyright": "Copyright © 2019, hubu.eims",
+    "description": "Shove distributed file system - client.",
+    "license": "MIT",
+    "copyright": "Copyright © 2019, Shove",
     "targetType": "executable",
     "targetName": "sdfs.client",
     "targetPath": "../release",

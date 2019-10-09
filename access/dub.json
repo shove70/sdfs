@@ -1,7 +1,9 @@
 {
-    "authors": ["hubu.eims lab"],
+    "authors": ["Shove"],
     "name": "access",
-    "description": "Shove sdfs system access server.",
+    "description": "Shove distributed file system - access server.",
+    "license": "MIT",
+    "copyright": "Copyright © 2019, Shove",
     "targetType": "executable",
     "targetName": "sdfs.access",
     "targetPath": "../release",

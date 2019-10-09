@@ -1,8 +1,9 @@
 {
-    "authors": ["hubu.eims lab"],
+    "authors": ["Shove"],
     "name": "tracker",
-    "description": "Shove sdfs system tracker server.",
-    "copyright": "Copyright © 2019, hubu.eims",
+    "description": "Shove distributed file system - tracker server.",
+    "license": "MIT",
+    "copyright": "Copyright © 2019, Shove",
     "targetType": "executable",
     "targetName": "sdfs.tracker",
     "targetPath": "../release",
