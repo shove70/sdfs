@@ -1,5 +1,7 @@
 module sdfs.client.api;
 
+import core.thread;
+
 import std.json;
 import std.string;
 import std.typecons;
@@ -20,6 +22,9 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
 
     string keyHash = RIPEMD160(content);
 
+    int trys = 0;
+    label_preupload:
+
     PreuploadResponse res1;
     try
     {
@@ -28,18 +33,36 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
     }
     catch (Exception e)
     {
+        if (++trys < 3)
+        {
+            Thread.sleep(200.msecs);
+            goto label_preupload;
+        }
+
         errorInfo = e.msg;
         return -1;
     }
 
     if (res1 is null)
     {
+        if (++trys < 3)
+        {
+            Thread.sleep(200.msecs);
+            goto label_preupload;
+        }
+
         errorInfo = "sfds.libclient preupload fail.";
         return -2;
     }
 
     if (res1.result < 0)
     {
+        if (++trys < 3)
+        {
+            Thread.sleep(200.msecs);
+            goto label_preupload;
+        }
+
         errorInfo = res1.description;
         return res1.result;
     }
@@ -94,6 +117,9 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
     string host = j["host"].str;
     ushort port = cast(ushort)j["port"].integer;
 
+    trys = 0;
+    label_upload:
+
     UploadResponse res2;
     try
     {
@@ -102,18 +128,36 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
     }
     catch (Exception e)
     {
+        if (++trys < 3)
+        {
+            Thread.sleep(200.msecs);
+            goto label_upload;
+        }
+
         errorInfo = e.msg;
         return -11;
     }
 
     if (res2 is null)
     {
+        if (++trys < 3)
+        {
+            Thread.sleep(200.msecs);
+            goto label_upload;
+        }
+
         errorInfo = "sfds.libclient upload fail.";
         return -12;
     }
 
     if (res2.result < 0)
     {
+        if (++trys < 3)
+        {
+            Thread.sleep(200.msecs);
+            goto label_upload;
+        }
+
         errorInfo = res2.description;
         return res2.result;
     }
