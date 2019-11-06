@@ -191,7 +191,9 @@ class Storage
                     foreach (storager; storagers)
                     {
                         if (now - storager.lastOnlineTime >= interval.seconds)
+                        {
                             continue;
+                        }
 
                         JSONValue data;
                         data["data"] = [ null ];
@@ -213,7 +215,9 @@ class Storage
         }
 
         if (cached_onlines.length == 0)
+        {
             return string.init;
+        }
 
         return cached_onlines[rnd.next!size_t(0, cached_onlines.length - 1)];
     }

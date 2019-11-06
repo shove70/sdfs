@@ -47,18 +47,7 @@ void main()
 
     Message.settings(config.sys.protocol.magic.as!ushort);
 
-    short result;
-    int times;
-    do
-    {
-        result = register(errorInfo);
-        if (result < 0)
-        {
-            Thread.sleep(500.msecs);
-        }
-    }
-    while ((times++ < 3) && (result < 0));
-
+    immutable result = register(errorInfo);
     if (result < 0)
     {
         writeln("Register to tracker fail: " ~ errorInfo);
@@ -94,10 +83,13 @@ void onSendCompleted(const int fd, string remoteAddress, const scope ubyte[] dat
 
 private:
 
-__gshared int interval = 600;
+__gshared int interval = 300;
 
 short register(ref string errorInfo)
 {
+    int trys = 0;
+    label_register:
+
     RegisterResponse res;
     try
     {
@@ -112,12 +104,24 @@ short register(ref string errorInfo)
     }
     catch (Exception e)
     {
+        if (++trys < 3)
+        {
+            Thread.sleep(200.msecs);
+            goto label_register;
+        }
+
         errorInfo = e.msg;
         return -1;
     }
 
     if (res is null)
     {
+        if (++trys < 3)
+        {
+            Thread.sleep(200.msecs);
+            goto label_register;
+        }
+
         errorInfo = "sfds.storager register task fail.";
         return -2;
     }
@@ -163,13 +167,13 @@ void registerTask()
 {
     while (true)
     {
-        Thread.sleep(interval.seconds);
-
         scope(failure)
         {
             logger.write("System Failure in registerTask().");
             continue;
         }
+
+        Thread.sleep(interval.seconds);
 
         string errorInfo;
         immutable result = register(errorInfo);
