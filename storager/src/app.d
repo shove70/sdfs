@@ -1,7 +1,6 @@
 module sdfs.storager.app;
 
 import core.thread : Thread;
-import std.concurrency;
 import std.conv : to;
 import std.exception : collectException, enforce;
 import std.datetime;
@@ -56,8 +55,8 @@ void main()
 
     business = new Server!(Business)();
 
-    spawn!()(&registerTask);
-    spawn!()(&synchronizeToTrackerTask);
+    new Thread({ registerTask(); }).start();
+    new Thread({ synchronizeToTrackerTask(); }).start();
 
     startServer(config.storager.port.as!ushort, config.sys.workThreads.as!int, config.sys.protocol.magic.as!ushort,
         &onRequest, &onSendCompleted);
@@ -156,7 +155,7 @@ short register(ref string errorInfo)
 
         if (partnerHost != string.init)
         {
-            spawn!()(&synchronizeToPartnerTask);
+            new Thread({ synchronizeToPartnerTask(); }).start();
         }
     }
 
