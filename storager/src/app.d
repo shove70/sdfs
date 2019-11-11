@@ -82,7 +82,7 @@ void onSendCompleted(const int fd, string remoteAddress, const scope ubyte[] dat
 
 private:
 
-__gshared int interval = 300;
+__gshared int interval = 60;
 
 short register(ref string errorInfo)
 {

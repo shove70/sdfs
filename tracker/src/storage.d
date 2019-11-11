@@ -1,12 +1,13 @@
 module sdfs.tracker.storage;
 
-import core.sync.rwmutex;
 import std.exception : enforce;
 import std.datetime;
 import std.conv : to;
 import std.algorithm.searching : count;
 import std.json;
 import std.parallelism;
+import std.algorithm.iteration : filter;
+import std.array;
 
 import appbase.utils;
 
@@ -20,6 +21,8 @@ package class Storager
     ushort  port;
     DateTime lastOnlineTime;
 
+    string info;
+
     this(const ushort group, const ubyte name, const string host, const ushort port, const DateTime lastOnlineTime)
     {
         enforce(name == 1 || name == 2, "The storager's name must be equal to 1 or 2 only.");
@@ -29,6 +32,24 @@ package class Storager
         this.host = host;
         this.port = port;
         this.lastOnlineTime = lastOnlineTime;
+
+        updateInfo();
+    }
+
+    void updateInfo()
+    {
+        JSONValue data;
+        data["data"] = [ null ];
+        data["data"].array.length = 0;
+
+        JSONValue j = ["group": "", "name": "", "host": "", "port": ""];
+        j["group"].integer  = group;
+        j["name"].integer   = name;
+        j["host"].str       = host;
+        j["port"].integer   = port;
+        data["data"].array ~= j;
+
+        info = compressString(data.toString());
     }
 }
 
@@ -40,16 +61,6 @@ class Storage
     __gshared private DateTime cached_all_tick;
     __gshared private string cached_all_key      = "__cached_all__";
     __gshared private string cached_all_tick_key = "__cached_all_tick__";
-
-    __gshared private string[] cached_onlines;
-    __gshared private DateTime cached_onlines_tick;
-
-    __gshared private ReadWriteMutex _mutex;
-
-    shared static this()
-    {
-        _mutex = new ReadWriteMutex(ReadWriteMutex.Policy.PREFER_WRITERS);
-    }
 
     static void load()
     {
@@ -136,15 +147,21 @@ class Storage
             {
                 storager = storagers[key];
                 state = ((storager.host != host) || (storager.port != port) || (now - storager.lastOnlineTime >= interval.seconds)) ? 2 : 0;
+                bool infoChanged = ((storager.host != host) || (storager.port != port));
                 storager.host = host;
                 storager.port = port;
                 storager.lastOnlineTime = now;
+
+                if (infoChanged)
+                {
+                    storager.updateInfo();
+                }
             }
         }
 
         if ((state > 0) || (now - cached_all_tick >= interval.seconds))
         {
-            synchronized (_mutex.writer)
+            synchronized (Storage.classinfo)
             {
                 if ((state > 0) || (now - cached_all_tick >= interval.seconds))
                 {
@@ -179,47 +196,19 @@ class Storage
     static string get()
     {
         DateTime now = appbase.utils.now;
+        Storager[] onlines;
 
-        if (now - cached_onlines_tick >= interval.seconds)
+        synchronized (Storage.classinfo)
         {
-            synchronized (_mutex.writer)
-            {
-                if (now - cached_onlines_tick >= interval.seconds)
-                {
-                    cached_onlines.length = 0;
-
-                    foreach (storager; storagers)
-                    {
-                        if (now - storager.lastOnlineTime >= interval.seconds)
-                        {
-                            continue;
-                        }
-
-                        JSONValue data;
-                        data["data"] = [ null ];
-                        data["data"].array.length = 0;
-
-                        JSONValue j = ["group": "", "name": "", "host": "", "port": ""];
-                        j["group"].integer  = storager.group;
-                        j["name"].integer   = storager.name;
-                        j["host"].str       = storager.host;
-                        j["port"].integer   = storager.port;
-                        data["data"].array ~= j;
-
-                        cached_onlines ~= compressString(data.toString());
-                    }
-
-                    cached_onlines_tick = now;
-                }
-            }
+            onlines = storagers.values.filter!((a) => (now - a.lastOnlineTime < interval.seconds)).array;
         }
 
-        if (cached_onlines.length == 0)
+        if (onlines.length == 0)
         {
             return string.init;
         }
 
-        return cached_onlines[rnd.next!size_t(0, cached_onlines.length - 1)];
+        return onlines[rnd.next!size_t(0, onlines.length - 1)].info;
     }
 
     static void reportFileChanged(const ushort group, const byte operation, const string keyHash)
