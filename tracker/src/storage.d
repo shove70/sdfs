@@ -17,8 +17,6 @@ package class Storager
 {
     ushort  group;
     ubyte   name;
-    string  host;
-    ushort  port;
     DateTime lastOnlineTime;
 
     string info;
@@ -29,12 +27,49 @@ package class Storager
 
         this.group = group;
         this.name = name;
-        this.host = host;
-        this.port = port;
+        this._host = host;
+        this._port = port;
         this.lastOnlineTime = lastOnlineTime;
 
         updateInfo();
     }
+
+    @property string host()
+    {
+        return _host;
+    }
+
+    @property void host(const string value)
+    {
+        bool changed = (_host != value);
+        _host = value;
+
+        if (changed)
+        {
+            updateInfo();
+        }
+    }
+
+    @property ushort port()
+    {
+        return _port;
+    }
+
+    @property void port(const ushort value)
+    {
+        bool changed = (_port != value);
+        _port = value;
+
+        if (changed)
+        {
+            updateInfo();
+        }
+    }
+
+private:
+
+    string _host;
+    ushort _port;
 
     void updateInfo()
     {
@@ -45,8 +80,8 @@ package class Storager
         JSONValue j = ["group": "", "name": "", "host": "", "port": ""];
         j["group"].integer  = group;
         j["name"].integer   = name;
-        j["host"].str       = host;
-        j["port"].integer   = port;
+        j["host"].str       = _host;
+        j["port"].integer   = _port;
         data["data"].array ~= j;
 
         info = compressString(data.toString());
@@ -147,15 +182,9 @@ class Storage
             {
                 storager = storagers[key];
                 state = ((storager.host != host) || (storager.port != port) || (now - storager.lastOnlineTime >= interval.seconds)) ? 2 : 0;
-                bool infoChanged = ((storager.host != host) || (storager.port != port));
                 storager.host = host;
                 storager.port = port;
                 storager.lastOnlineTime = now;
-
-                if (infoChanged)
-                {
-                    storager.updateInfo();
-                }
             }
         }
 
