@@ -10,15 +10,9 @@
     "dependencies": {
         "appbase:utils": "~>0.1.10",
         "appbase:configuration": "~>0.1.10",
-        "buffer": "~>0.2.27"
-    },
-    "lflags-posix": [
-        "-L../release"
-    ],
-    "libs": [
-        "sdfsclient"
-    ],
-    "sourceFiles-windows": [
-        "../release/sdfsclient.lib"
-    ]
+        "buffer": "~>0.2.27",
+        "sdfs_api": {
+            "path": "../api"
+        }
+    }
 }

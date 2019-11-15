@@ -1,0 +1,17 @@
+{
+    "authors": ["Shove"],
+    "name": "sdfs_api",
+    "description": "Shove distributed file system - client api.",
+    "license": "MIT",
+    "copyright": "Copyright © 2019, Shove",
+    "targetType": "library",
+    "targetName": "sdfs.api",
+    "targetPath": "../release",
+    "dependencies": {
+        "appbase:utils": "~>0.1.10",
+        "buffer": "~>0.2.27"
+    },
+    "stringImportPaths": [
+        "../buffers/"
+    ]
+}
