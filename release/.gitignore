@@ -8,8 +8,8 @@
 **/sdfs.access.exe
 **/sdfs.client.exe
 
-/libsdfsclient.a
-/sdfsclient.lib
+/libsdfs.api.a
+/sdfs.api.lib
 
 **/nohup.out
 **/log
