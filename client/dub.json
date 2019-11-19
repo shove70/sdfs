@@ -8,9 +8,9 @@
     "targetName": "sdfs.client",
     "targetPath": "../release",
     "dependencies": {
-        "appbase:utils": "~>0.1.10",
-        "appbase:configuration": "~>0.1.10",
-        "buffer": "~>0.2.27",
+        "appbase:utils": "~>0.1.11",
+        "appbase:configuration": "~>0.1.11",
+        "buffer": "~>0.2.28",
         "sdfs_api": {
             "path": "../api"
         }
