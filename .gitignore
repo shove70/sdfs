@@ -1,1 +1,3 @@
-/.project
+**/.dub/
+**/dub.selections.json
+**/.project
