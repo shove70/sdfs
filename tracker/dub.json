@@ -8,10 +8,10 @@
     "targetName": "sdfs.tracker",
     "targetPath": "../release",
     "dependencies": {
-        "appbase:utils": "~>0.1.11",
-        "appbase:configuration": "~>0.1.11",
-        "appbase:listener": "~>0.1.11",
-        "buffer": "~>0.2.28",
+        "appbase:utils": "~>0.1.12",
+        "appbase:configuration": "~>0.1.12",
+        "appbase:listener": "~>0.1.12",
+        "buffer": "~>0.2.29",
         "leveldb": "~>1.16.0"
     },
     "stringImportPaths": [
