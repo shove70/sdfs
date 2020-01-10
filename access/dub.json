@@ -10,7 +10,7 @@
     "dependencies": {
         "appbase:utils": "~>0.1.15",
         "appbase:configuration": "~>0.1.15",
-        "lighttp": "~>0.5.3",
+        "lighttp": "~>0.5.4",
         "cachetools": "~>0.3.1"
     }
 }
