@@ -51,7 +51,7 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
             goto label_preupload;
         }
 
-        errorInfo = "sfds.libclient preupload fail.";
+        errorInfo = "sfds.libapi preupload fail.";
         return -2;
     }
 
@@ -146,7 +146,7 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
             goto label_upload;
         }
 
-        errorInfo = "sfds.libclient upload fail.";
+        errorInfo = "sfds.libapi upload fail.";
         return -12;
     }
 
