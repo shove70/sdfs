@@ -39,7 +39,7 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
             goto label_preupload;
         }
 
-        errorInfo = e.msg;
+        errorInfo = "Call sdfs api has error: " ~ e.msg;
         return -1;
     }
 
@@ -51,7 +51,7 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
             goto label_preupload;
         }
 
-        errorInfo = "sfds.libapi preupload fail.";
+        errorInfo = "Call sdfs api has error: preupload fail.";
         return -2;
     }
 
@@ -63,7 +63,7 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
             goto label_preupload;
         }
 
-        errorInfo = res1.description;
+        errorInfo = "Call sdfs api has error: " ~ res1.description;
         return res1.result;
     }
 
@@ -75,7 +75,7 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
 
     if (res1.storager == string.init)
     {
-        errorInfo = "No storager available yet.";
+        errorInfo = "Call sdfs api has error: No storager available yet.";
         return -3;
     }
 
@@ -86,7 +86,7 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
     }
     catch (Exception e)
     {
-        errorInfo = e.msg;
+        errorInfo = "Call sdfs api has error: " ~ e.msg;
 
         return -4;
     }
@@ -96,19 +96,19 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
         json = json["data"];
         if (json.type != JSONType.array)
         {
-            errorInfo = "Json data must have a array key \"data\".";
+            errorInfo = "Call sdfs api has error: Json data must have a array key \"data\".";
             return -5;
         }
     }
     catch (Exception e)
     {
-        errorInfo = "Json data error: " ~ e.msg;
+        errorInfo = "Call sdfs api has error: Json data error: " ~ e.msg;
         return -6;
     }
 
     if (json.array.length == 0)
     {
-        errorInfo = "Json data is empty.";
+        errorInfo = "Call sdfs api has error: Json data is empty.";
         return -7;
     }
 
@@ -134,7 +134,7 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
             goto label_upload;
         }
 
-        errorInfo = e.msg;
+        errorInfo = "Call sdfs api has error: " ~ e.msg;
         return -11;
     }
 
@@ -146,7 +146,7 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
             goto label_upload;
         }
 
-        errorInfo = "sfds.libapi upload fail.";
+        errorInfo = "Call sdfs api has error: upload fail.";
         return -12;
     }
 
@@ -158,7 +158,7 @@ extern (C) short upload(const string trackerHost, const ushort trackerPort, cons
             goto label_upload;
         }
 
-        errorInfo = res2.description;
+        errorInfo = "Call sdfs api has error: " ~ res2.description;
         return res2.result;
     }
 
