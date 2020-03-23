@@ -1,0 +1,6 @@
+vi /etc/security/limits.conf
+
+* soft   nofile   32768
+* hard   nofile   65536
+
+reboot

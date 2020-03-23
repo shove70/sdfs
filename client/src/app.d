@@ -9,7 +9,7 @@ import appbase.utils;
 
 import sdfs.client.configuration;
 
-extern (C) short upload(const string trackerHost, const ushort trackerPort, const ushort messageMagic,
+extern (C) short sdfs_upload(const string trackerHost, const ushort trackerPort, const ushort messageMagic,
     const scope void[] content, ref string url, ref string errorInfo);
 
 void main(string[] args)
@@ -41,7 +41,7 @@ void main(string[] args)
     Config.initConfiguration();
 
     string url, errorInfo;
-    immutable short result = upload(
+    immutable short result = sdfs_upload(
         config.server.host.tracker.value,
         config.server.port.tracker.as!ushort,
         config.sys.protocol.magic.as!ushort,
