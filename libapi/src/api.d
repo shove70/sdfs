@@ -14,17 +14,6 @@ import appbase.utils;
 
 mixin(LoadBufferFile!"sdfs.buffer");
 
-__gshared string g_trackerHost;
-__gshared ushort g_trackerPort;
-__gshared ushort g_messageMagic;
-
-extern (C) void init(const string trackerHost, const ushort trackerPort, const ushort messageMagic, size_t poolMax = 16)
-{
-    g_trackerHost  = trackerHost;
-    g_trackerPort  = trackerPort;
-    g_messageMagic = messageMagic;
-}
-
 extern (C) short sdfs_upload(const string trackerHost, const ushort trackerPort, const ushort messageMagic,
     const scope void[] content, ref string url, ref string errorInfo)
 {
