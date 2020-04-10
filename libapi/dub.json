@@ -9,7 +9,7 @@
     "targetPath": "../release",
     "dependencies": {
         "appbase:utils": "~>0.1.19",
-        "buffer": "~>0.2.33"
+        "buffer": "~>0.2.34"
     },
     "stringImportPaths": [
         "../buffers/"
