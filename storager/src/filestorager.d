@@ -8,6 +8,8 @@ import appbase.utils;
 import sdfs.storager.configuration;
 import sdfs.storager.synchronizer;
 
+__gshared ubyte[] g_zip_flags = [12, 29];
+
 class FileStorager
 {
     static bool exists(const string keyHash, ref string fileRealname)
@@ -60,11 +62,16 @@ class FileStorager
 
         try
         {
-            write(path, content);
+            if (!isSyncMode)
+            {
+                write(path, addZipflag(content));
+            }
+            else
+            {
+                write(path, content);
+            }
         }
-        catch (Exception e)
-        {
-        }
+        catch (Exception) { }
 
         if (!isSyncMode)
         {
@@ -84,9 +91,9 @@ class FileStorager
 
         try
         {
-            return cast(ubyte[])std.file.read(fileRealname);
+            return cast(ubyte[]) std.file.read(fileRealname);
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return null;
         }
@@ -134,5 +141,15 @@ class FileStorager
     static string buildStorageFilename(const string keyHash)
     {
         return buildPath(buildStoragePath(keyHash), keyHash);
+    }
+
+    static ubyte[] addZipflag(const scope ubyte[] content)
+    {
+        import std.bitmanip : write;
+
+        ubyte[] b_len = new ubyte[2];
+        write!ushort(b_len, (content.length + 4) % ushort.max, 0);
+
+        return g_zip_flags ~ b_len ~ content;
     }
 }

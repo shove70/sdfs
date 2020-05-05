@@ -138,15 +138,15 @@ short register(ref string errorInfo)
         JSONValue json = parseJSON(uncompressString(res.allStoragers))["data"];
         foreach (JSONValue j; json.array)
         {
-            ushort group = cast(ushort)j["group"].integer;
-            ubyte name = cast(ubyte)j["name"].integer;
+            ushort group = cast(ushort) j["group"].integer;
+            ubyte name = cast(ubyte) j["name"].integer;
 
             if ((group == config.storager.group.as!ushort) && (name != config.storager.name.as!ubyte))
             {
-                if (cast(byte)j["online"].integer == 1)
+                if (cast(byte) j["online"].integer == 1)
                 {
                     partnerHost = j["host"].str;
-                    partnerPort = cast(ushort)j["port"].integer;
+                    partnerPort = cast(ushort) j["port"].integer;
                 }
 
                 break;

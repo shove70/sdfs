@@ -111,7 +111,7 @@ class LevelDB
 
         static if (isSomeString!V || isArray!V)
         {
-            value = cast(V)(cast(char[])(valptr)[0..vallen]).dup;
+            value = cast(V) (cast(char[]) (valptr)[0..vallen]).dup;
         }
         else static if (is(V == class))
         {
@@ -120,7 +120,7 @@ class LevelDB
                 return false;
             }
 
-            value = *(cast(V*)valptr).dup;
+            value = *(cast(V*) valptr).dup;
         }
         else
         {
@@ -129,7 +129,7 @@ class LevelDB
                 return false;
             }
 
-            value = *(cast(V*)valptr);
+            value = *(cast(V*) valptr);
         }
 
         return true;

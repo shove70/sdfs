@@ -20,7 +20,7 @@ extern (C) short sdfs_upload(const string trackerHost, const ushort trackerPort,
     url = string.init;
     errorInfo = string.init;
 
-    string keyHash = RIPEMD160(content);
+    const string keyHash = RIPEMD160(content);
 
     int trys = 0;
     label_preupload:
@@ -113,9 +113,9 @@ extern (C) short sdfs_upload(const string trackerHost, const ushort trackerPort,
     }
 
     JSONValue j = json.array[0];
-    ushort group = cast(ushort)j["group"].integer;
+    ushort group = cast(ushort) j["group"].integer;
     string host = j["host"].str;
-    ushort port = cast(ushort)j["port"].integer;
+    ushort port = cast(ushort) j["port"].integer;
 
     trys = 0;
     label_upload:

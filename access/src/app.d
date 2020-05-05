@@ -21,6 +21,7 @@ import appbase.utils;
 import sdfs.access.configuration;
 
 __gshared auto g_cache = new Cache2Q!(string, FileInfo);
+__gshared ubyte[] g_zip_flags = [12, 29];
 
 void main()
 {
@@ -107,7 +108,7 @@ class StaticRouter
 
             try
             {
-                fi.get.data = cast(char[]) read(filename);
+                fi.get.data = readFile(filename);
             }
             catch (Exception e)
             {
@@ -169,7 +170,7 @@ class StaticRouter
                 else if (s[1].length)
                 {
                     rangeEnd = fi.get.data.length;
-                    auto len = s[1].to!ulong;
+                    const auto len = s[1].to!ulong;
 
                     if (len >= rangeEnd)
                     {
@@ -253,7 +254,7 @@ class StaticRouter
     {
         Appender!string ret;
         
-        DateTime dt = cast(DateTime)systime;
+        DateTime dt = cast(DateTime) systime;
         Date date = dt.date;
         
         ret.put(to!string(date.dayOfWeek).capitalize);
@@ -265,8 +266,8 @@ class StaticRouter
         ret.put(to!string(date.year));
         ret.put(" ");
         
-        TimeOfDay time = cast(TimeOfDay)systime;
-        int tz_offset = cast(int)systime.utcOffset.total!"minutes";
+        TimeOfDay time = cast(TimeOfDay) systime;
+        int tz_offset = cast(int) systime.utcOffset.total!"minutes";
         
         ret.put(rightJustify(to!string(time.hour), 2, '0'));
         ret.put(":");
@@ -288,6 +289,31 @@ class StaticRouter
         }
         
         return ret.data;
+    }
+
+    /// Read zip or general file by the g_zip_flags.
+    char[] readFile(const string filename)
+    {
+        import std.bitmanip : write;
+        import std.zlib : uncompress;
+
+        char[] data = cast(char[]) read(filename);
+        size_t len = data.length;
+
+        if ((len < 4) || (data[0..2] != g_zip_flags))
+        {
+            return data;
+        }
+
+        ubyte[] b_len = new ubyte[2];
+        write!ushort(b_len, len % ushort.max, 0);
+
+        if (data[2..4] != b_len)
+        {
+            return data;
+        }
+
+        return cast(char[]) uncompress(cast(ubyte[]) data[4..$]);
     }
 }
 

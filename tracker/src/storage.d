@@ -136,10 +136,10 @@ class Storage
 
         foreach (JSONValue j; json.array)
         {
-            ushort group = cast(ushort)j["group"].integer;
-            ubyte name   = cast(ubyte)j["name"].integer;
+            ushort group = cast(ushort) j["group"].integer;
+            ubyte name   = cast(ubyte) j["name"].integer;
             string host = j["host"].str;
-            ushort port = cast(ushort)j["port"].integer;
+            ushort port = cast(ushort) j["port"].integer;
             DateTime lastOnlineTime = dateTimeFromString(j["lastOnlineTime"].str, DateTime.init);
 
             string key = group.to!string ~ "." ~ name.to!string;

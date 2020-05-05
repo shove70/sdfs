@@ -78,9 +78,7 @@ class Synchronizer
                     operation,
                     keyHash);
             }
-            catch (Exception e)
-            {
-            }
+            catch (Exception) { }
 
             if (operation == 1)
             {
@@ -133,11 +131,9 @@ class Synchronizer
                     config.storager.name.as!ubyte,
                     operation,
                     keyHash,
-                    operation == 1 ? compressString(FileStorager.read(keyHash)) : string.init);
+                    operation == 1 ? cast(string) FileStorager.read(keyHash) : string.init);
             }
-            catch (Exception e)
-            {
-            }
+            catch (Exception) { }
 
             if (operation == 1)
             {
@@ -183,9 +179,7 @@ private:
         {
             rename(fileRealname, cast(string) newname);
         }
-        catch (Exception e)
-        {
-        }
+        catch (Exception) { }
 
         unlockFile(keyHash);
     }

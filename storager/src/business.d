@@ -31,7 +31,7 @@ package class Business
         ubyte[] buf = uncompressUbytes(content);
 
         string keyHash = FileStorager.generateKeyHash(buf);
-        FileStorager.save(keyHash, buf, false);
+        FileStorager.save(keyHash, cast(ubyte[]) content, false);
 
         res.result = 0;
         res.url = FileStorager.buildUrl(keyHash);
@@ -109,8 +109,7 @@ package class Business
 
         if (operation == 1)
         {
-            ubyte[] buf = uncompressUbytes(content);
-            FileStorager.save(keyHash, buf, true);
+            FileStorager.save(keyHash, cast(ubyte[]) content, true);
         }
         else if (operation == 2)
         {
