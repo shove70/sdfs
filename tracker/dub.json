@@ -11,7 +11,7 @@
         "appbase:utils": "~>0.1.22",
         "appbase:configuration": "~>0.1.22",
         "appbase:listener": "~>0.1.22",
-        "buffer": "~>0.2.34",
+        "buffer": "~>0.2.35",
         "leveldb": "~>1.16.0"
     },
     "stringImportPaths": [
