@@ -8,9 +8,9 @@
     "targetName": "sdfs.storager",
     "targetPath": "../release",
     "dependencies": {
-        "appbase:utils": "~>0.1.22",
-        "appbase:configuration": "~>0.1.22",
-        "appbase:listener": "~>0.1.22",
+        "appbase:utils": "~>0.1.23",
+        "appbase:configuration": "~>0.1.23",
+        "appbase:listener": "~>0.1.23",
         "buffer": "~>0.2.36"
     },
     "stringImportPaths": [
