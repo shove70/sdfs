@@ -8,8 +8,8 @@
     "targetName": "sdfs.api",
     "targetPath": "../release",
     "dependencies": {
-        "appbase:utils": "~>0.1.24",
-        "buffer": "~>0.2.36"
+        "appbase:utils": "~>0.1.25",
+        "buffer": "~>0.2.37"
     },
     "stringImportPaths": [
         "../buffers/"
