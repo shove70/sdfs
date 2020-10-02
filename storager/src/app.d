@@ -58,8 +58,8 @@ void main()
     new Thread({ registerTask(); }).start();
     new Thread({ synchronizeToTrackerTask(); }).start();
 
-    startServer(config.storager.port.as!ushort, config.sys.workThreads.as!int, config.sys.protocol.magic.as!ushort,
-        &onRequest, &onSendCompleted);
+    startServer(config.storager.port.as!ushort, config.sys.protocol.magic.as!ushort,
+        &onRequest, &onSendCompleted, config.sys.businessThreads.as!int, config.sys.workerThreads.as!int);
 }
 
 private void onRequest(TcpClient client, const scope ubyte[] data)

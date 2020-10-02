@@ -12,6 +12,6 @@ class Config
         config.load(buildPath(getExePath(), "sdfs.storager.conf"));
 
         config.sys.protocol.magic.default_value!ushort = 0;
-        config.sys.workThreads.default_value!int       = 0;
+        config.sys.businessThreads.default_value!int   = 64;
     }
 }

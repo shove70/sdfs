@@ -35,8 +35,8 @@ void main()
 
     business = new Server!(Business)();
 
-    startServer(config.server.port.as!ushort, config.sys.workThreads.as!int, config.sys.protocol.magic.as!ushort,
-        &onRequest, &onSendCompleted);
+    startServer(config.server.port.as!ushort, config.sys.protocol.magic.as!ushort,
+        &onRequest, &onSendCompleted, config.sys.businessThreads.as!int, config.sys.workerThreads.as!int);
 }
 
 private void onRequest(TcpClient client, const scope ubyte[] data)
