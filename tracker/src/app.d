@@ -17,6 +17,7 @@ import sdfs.tracker.leveldb;
 import sdfs.tracker.storage;
 
 __gshared Server!(Business) business;
+__gshared ushort[] g_groups_excluded;
 
 void main()
 {
@@ -34,6 +35,7 @@ void main()
     Message.settings(config.sys.protocol.magic.as!ushort);
 
     business = new Server!(Business)();
+    g_groups_excluded = config.business.groups.excluded.array!ushort;
 
     startServer(config.server.port.as!ushort, config.sys.protocol.magic.as!ushort,
         &onRequest, &onSendCompleted, config.sys.businessThreads.as!int, config.sys.workerThreads.as!int);

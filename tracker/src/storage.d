@@ -12,6 +12,7 @@ import std.array;
 import appbase.utils;
 
 import sdfs.tracker.leveldb;
+import sdfs.tracker.app : g_groups_excluded;
 
 package class Storager
 {
@@ -255,7 +256,7 @@ class Storage
     static string findFileUrl(const string keyHash)
     {
         ushort group = LevelDB.get(keyHash, cast(ushort) 0);
-        if (group == 0)
+        if (group == 0 || inArray(g_groups_excluded, group))
         {
             return string.init;
         }
